@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>好物競標場 | 官方嚴選收藏與限時拍賣平台</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    .modal-enter { animation: fadeIn 0.2s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+    .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .bg-ig-gradient { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- 頂部導航欄 -->
+  <header class="bg-white shadow-sm sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="switchView('all')">
+        <div class="bg-amber-500 text-white p-2 rounded-lg shadow-md">
+          <i class="fa-solid fa-gavel text-lg"></i>
+        </div>
+        <div>
+          <span class="font-bold text-lg sm:text-xl tracking-tight text-slate-900">好物競標場</span>
+          <span id="connBadge" class="text-[10px] font-semibold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full ml-1">連線檢查中...</span>
+        </div>
+      </div>
+
+      <div class="hidden md:flex flex-1 max-w-md mx-4">
+        <div class="relative w-full">
+          <input type="text" id="searchInput" oninput="renderAuctions()" placeholder="搜尋競標中卡牌、公仔、限定收藏..." 
+            class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-slate-50">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400"></i>
+        </div>
+      </div>
+
+      <!-- 右上角身份區 -->
+      <div class="flex items-center space-x-2 shrink-0">
+        <div id="guestAuthView" class="flex items-center space-x-2">
+          <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 mr-1.5"></span>訪客觀標中
+          </span>
+          <button onclick="openLoginModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-full shadow-sm transition flex items-center space-x-1.5">
+            <i class="fa-brands fa-google text-rose-400"></i>
+            <i class="fa-brands fa-instagram text-pink-400"></i>
+            <span>登入參與競標</span>
+          </button>
+        </div>
+
+        <div id="userAuthView" class="hidden flex items-center space-x-2.5">
+          <button id="adminUploadBtn" onclick="openUploadModal()" class="hidden bg-amber-500 hover:bg-amber-600 text-white text-xs sm:text-sm font-bold px-3.5 py-2 rounded-full shadow-sm transition flex items-center">
+            <i class="fa-solid fa-plus mr-1.5"></i> 官方上架拍賣品
+          </button>
+          <div class="flex items-center space-x-2 pl-2 border-l border-slate-200">
+            <div id="userAvatarBadge" class="w-8 h-8 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center text-sm">U</div>
+            <div class="text-left">
+              <div class="flex items-center space-x-1">
+                <span id="userNameDisplay" class="text-xs font-bold text-slate-800 leading-none">載入中</span>
+                <span id="userRoleBadge" class="text-[10px] px-1.5 py-0.2 rounded font-semibold"></span>
+              </div>
+              <div class="flex items-center space-x-2 mt-0.5">
+                <button onclick="openProfileModal(false)" class="text-[11px] text-slate-500 hover:text-slate-800">修改電話</button>
+                <button onclick="logout()" class="text-[11px] text-rose-500 hover:underline">登出</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 視角與分類列 -->
+  <div class="bg-white border-b border-slate-200">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex space-x-2">
+        <button id="tabAll" onclick="switchView('all')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-900 text-white shadow-sm">
+          <i class="fa-solid fa-fire text-amber-400 mr-1"></i> 全部拍賣場
+        </button>
+        <button id="tabMyBids" onclick="switchView('my_bids')" class="px-4 py-1.5 rounded-full text-sm font-medium text-slate-600 hover:bg-slate-100">
+          <i class="fa-solid fa-hand-holding-dollar mr-1"></i> 我的參標紀錄
+        </button>
+      </div>
+      <div class="flex items-center space-x-2 overflow-x-auto text-sm">
+        <button onclick="setCategory('全部')" class="cat-btn px-3 py-1 rounded-md bg-amber-500 text-white font-medium" data-cat="全部">全部</button>
+        <button onclick="setCategory('卡牌/桌遊')" class="cat-btn px-3 py-1 rounded-md bg-slate-100 text-slate-600" data-cat="卡牌/桌遊">卡牌/桌遊</button>
+        <button onclick="setCategory('公仔/周邊')" class="cat-btn px-3 py-1 rounded-md bg-slate-100 text-slate-600" data-cat="公仔/周邊">公仔/周邊</button>
+        <button onclick="setCategory('數碼/電子')" class="cat-btn px-3 py-1 rounded-md bg-slate-100 text-slate-600" data-cat="數碼/電子">數碼/電子</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <i class="fa-solid fa-crown text-amber-600 text-xl"></i>
+        <div>
+          <h3 class="text-sm font-bold text-amber-950">官方管理員模式 (is_admin = true)</h3>
+          <p class="text-xs text-amber-800">你目前已具備官方上架權限，且可點開任何拍賣品查看最高出價買家的綁定 WhatsApp 電話。</p>
+        </div>
+      </div>
+      <button onclick="openUploadModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm shrink-0">+ 新增拍賣品</button>
+    </div>
+
+    <div id="auctionsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+
+    <div id="emptyState" class="hidden text-center py-16">
+      <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-100 text-slate-400 mb-4">
+        <i class="fa-solid fa-gavel text-2xl"></i>
+      </div>
+      <h3 class="text-lg font-medium text-slate-700">暫時沒有拍賣品</h3>
+      <p class="text-sm text-slate-500 mt-1">官方管理員登入後即可點擊右上角上架第一件拍賣品！</p>
+    </div>
+  </main>
+
+  <!-- 登入 Modal -->
+  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-enter">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-bold text-slate-900">登入參與競標</h3>
+        <button onclick="closeLoginModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">首次登入後系統會要求填寫顯示名稱與綁定電話號碼。</p>
+      
+      <div class="space-y-2.5">
+        <button onclick="oauthLogin('google')" class="w-full flex items-center justify-center space-x-3 py-2.5 px-4 border border-slate-300 rounded-xl hover:bg-slate-50 font-medium text-sm text-slate-700">
+          <i class="fa-brands fa-google text-rose-500"></i>
+          <span>使用 Google 帳號繼續</span>
+        </button>
+        <button onclick="oauthLogin('facebook')" class="w-full flex items-center justify-center space-x-3 py-2.5 px-4 rounded-xl bg-ig-gradient text-white font-medium text-sm">
+          <i class="fa-brands fa-instagram text-lg"></i>
+          <span>使用 Instagram / Meta 帳號繼續</span>
+        </button>
+      </div>
+
+      <div class="relative flex py-4 items-center">
+        <div class="flex-grow border-t border-slate-200"></div>
+        <span class="flex-shrink mx-3 text-slate-400 text-[11px]">或使用 Email 快速註冊/登入測試</span>
+        <div class="flex-grow border-t border-slate-200"></div>
+      </div>
+
+      <form onsubmit="emailQuickAuth(event)" class="space-y-2.5">
+        <input type="email" id="authEmail" required placeholder="輸入 Email (例如 admin@test.com)" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+        <input type="password" id="authPassword" required minlength="6" placeholder="輸入密碼 (至少 6 位)" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+        <button type="submit" id="emailAuthBtn" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-2 rounded-lg text-xs font-bold">
+          Email 一鍵登入 / 自動註冊
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 首次登入綁定名稱與電話 Modal -->
+  <div id="profileModal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-enter">
+      <h3 class="text-lg font-bold text-slate-900 mb-1" id="profileModalTitle">首次登入：完善競標資料</h3>
+      <p class="text-xs text-slate-500 mb-4">請設定出價時顯示的用戶名稱，並綁定香港電話號碼供得標後官方聯絡交收。</p>
+      <form onsubmit="handleProfileSave(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">系統顯示名稱 *</label>
+          <input type="text" id="profileNickname" required placeholder="例如：卡佬阿明" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">香港聯絡電話 (8位數字) *</label>
+          <div class="flex">
+            <span class="inline-flex items-center px-3 text-xs text-slate-500 bg-slate-100 border border-r-0 border-slate-300 rounded-l-lg">+852</span>
+            <input type="tel" id="profilePhone" required pattern="[0-9]{8}" placeholder="91234567" class="w-full px-3 py-2 border border-slate-300 rounded-r-lg text-sm">
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-2">
+          <button type="button" id="cancelProfileBtn" onclick="document.getElementById('profileModal').classList.add('hidden')" class="hidden px-4 py-2 rounded-lg text-sm text-slate-500">取消</button>
+          <button type="submit" id="saveProfileBtn" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2.5 rounded-xl text-sm font-bold">儲存並開始競標</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 官方上架 Modal -->
+  <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl modal-enter my-8">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-gavel text-amber-500 mr-2"></i>官方上架新拍賣品</h3>
+        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <form id="uploadForm" onsubmit="handleCreateAuction(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-500 mb-1">貨品相片 *</label>
+          <div onclick="document.getElementById('imageFileInput').click()" class="border-2 border-dashed border-slate-300 hover:border-amber-500 rounded-xl p-4 text-center cursor-pointer bg-slate-50 relative overflow-hidden h-44 flex flex-col items-center justify-center">
+            <div id="uploadPlaceholder">
+              <i class="fa-regular fa-image text-3xl text-slate-400 mb-2"></i>
+              <p class="text-sm font-medium text-slate-600">點擊選擇相片上傳至 Supabase Storage</p>
+            </div>
+            <img id="imagePreview" src="" class="hidden absolute inset-0 w-full h-full object-contain p-2">
+          </div>
+          <input type="file" id="imageFileInput" accept="image/*" class="hidden" onchange="previewSelectedImage(event)">
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-semibold text-slate-500 mb-1">拍賣品名稱 *</label>
+            <input type="text" id="itemTitle" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">分類</label>
+            <select id="itemCategory" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
+              <option value="卡牌/桌遊">卡牌/桌遊</option>
+              <option value="公仔/周邊">公仔/周邊</option>
+              <option value="數碼/電子">數碼/電子</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-amber-50/60 p-3 rounded-xl border border-amber-100">
+          <div>
+            <label class="block text-xs font-bold text-amber-900 mb-1">底價 (HK$) *</label>
+            <input type="number" id="startPrice" required min="0" class="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-amber-900 mb-1">每口價 (HK$) *</label>
+            <input type="number" id="bidIncrement" required min="1" class="w-full px-3 py-1.5 border border-amber-200 rounded-lg text-sm bg-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-amber-900 mb-1">截標時間 *</label>
+            <input type="datetime-local" id="endTime" required class="w-full px-2 py-1.5 border border-amber-200 rounded-lg text-xs bg-white">
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">交收方式 / 地點 *</label>
+            <input type="text" id="itemLocation" required placeholder="例如：葵芳/荃灣面交 或 順豐" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-500 mb-1">貨品描述</label>
+            <input type="text" id="itemDesc" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
+          </div>
+        </div>
+        <div class="pt-2 flex justify-end space-x-3 border-t border-slate-100">
+          <button type="button" onclick="closeUploadModal()" class="px-4 py-2 rounded-lg text-sm text-slate-600">取消</button>
+          <button type="submit" id="publishBtn" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-2 rounded-lg text-sm font-bold">發布競標</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 拍賣詳情與出價 Modal -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8">
+      <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between">
+        <div class="relative h-64 md:h-80 bg-slate-900/5 flex items-center justify-center">
+          <img id="detailImg" src="" class="w-full h-full object-contain">
+          <span id="detailStatusBadge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"></span>
+        </div>	
+        <div class="p-5 bg-white border-t border-slate-100 flex-1">
+          <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <span id="detailCat" class="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded"></span>
+            <span><i class="fa-solid fa-location-dot mr-1"></i><span id="detailLocation"></span></span>
+          </div>
+          <h2 id="detailTitle" class="text-lg font-bold text-slate-900"></h2>
+          <p id="detailDesc" class="text-xs text-slate-600 mt-2 whitespace-pre-line"></p>
+        </div>
+      </div>
+
+      <div class="md:col-span-6 p-6 flex flex-col justify-between bg-white border-l border-slate-100">
+        <div>
+          <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+            <div class="text-xs font-bold flex items-center space-x-1.5" id="detailCountdownBox">
+              <i class="fa-regular fa-clock"></i>
+              <span id="detailCountdownText">計算中...</span>
+            </div>
+            <button onclick="closeDetailModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+          </div>
+
+          <div class="my-4 bg-slate-50 rounded-xl p-4 border border-slate-200/80">
+            <div class="flex justify-between items-baseline">
+              <span class="text-xs text-slate-500 font-medium">目前最高價</span>
+              <span class="text-xs text-slate-400">底價 $<span id="detailStartPrice"></span> ｜ 每口 +$<span id="detailIncrement"></span></span>
+            </div>
+            <div class="flex items-baseline justify-between mt-1">
+              <div class="text-3xl font-extrabold text-amber-600" id="detailCurrentPrice"></div>
+              <div class="text-xs text-slate-600" id="detailHighestBidder"></div>
+            </div>
+          </div>
+
+          <div id="adminWinnerContactBox" class="hidden mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs"></div>
+          <div id="bidActionArea" class="mb-5"></div>
+
+          <div>
+            <h4 class="text-xs font-bold text-slate-500 uppercase mb-2">出價紀錄 (<span id="detailBidCount">0</span>)</h4>
+            <div id="bidHistoryList" class="space-y-2 max-h-40 overflow-y-auto pr-1 text-xs"></div>
+          </div>
+        </div>
+        <div id="adminDeleteArea" class="hidden pt-3 mt-4 border-t border-slate-100 text-right"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // ★ 請在下方填入你在 Supabase Project Settings -> API 複製的 URL 與 anon key
+    // =========================================================================
+    const SUPABASE_URL = 'https://bauxsxftvkdqstjzfpvv.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_6OSI70WFyr6v9wFV9FM4Kw_G_4I8rt8';
+
+    const isConfigured = SUPABASE_URL.startsWith('http') && SUPABASE_ANON_KEY.length > 20;
+    const sb = isConfigured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+    let currentUser = null; // { id, nickname, phone, isAdmin }
+    let auctions = [];
+    let currentView = 'all';
+    let currentCategory = '全部';
+    let activeDetailAuctionId = null;
+    let selectedFileObj = null;
+
+    // 啟動初始化
+    async function initApp() {
+      const badge = document.getElementById('connBadge');
+      if (!isConfigured) {
+        badge.textContent = '請先在代碼第252行填入 Supabase URL & Key';
+        badge.className = 'text-[10px] font-bold bg-rose-100 text-rose-700 px-2 py-0.5 rounded-full ml-1';
+        return;
+      }
+      badge.textContent = 'Supabase 雲端已連線';
+      badge.className = 'text-[10px] font-semibold bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full ml-1';
+
+      // 監聽登入狀態
+      sb.auth.onAuthStateChange(async (_event, session) => {
+        if (session?.user) {
+          await loadUserProfile(session.user);
+        } else {
+          currentUser = null;
+          updateAuthUI();
+        }
+        await fetchAuctions();
+      });
+
+      await fetchAuctions();
+    }
+
+    // 讀取用戶 Profile (檢查是否已綁定名稱與電話、是否為官方 Admin)
+    async function loadUserProfile(authUser) {
+      const { data: profile } = await sb.from('profiles').select('*').eq('id', authUser.id).maybeSingle();
+      if (profile) {
+        currentUser = {
+          id: authUser.id,
+          nickname: profile.nickname,
+          phone: profile.phone,
+          isAdmin: profile.is_admin
+        };
+        updateAuthUI();
+      } else {
+        // 首次登入：尚未有 profile 紀錄，強制彈出綁定視窗
+        currentUser = { id: authUser.id, nickname: '', phone: '', isAdmin: false };
+        updateAuthUI();
+        openProfileModal(true);
+      }
+    }
+
+    // 讀取所有拍賣品與出價紀錄
+    async function fetchAuctions() {
+      if (!sb) return;
+      const { data: aucData } = await sb.from('auctions').select('*').order('created_at', { ascending: false });
+      const { data: bidsData } = await sb.from('bids').select('*').order('amount', { ascending: false });
+
+      if (aucData) {
+        auctions = aucData.map(a => ({
+          id: a.id,
+          title: a.title,
+          category: a.category,
+          location: a.location,
+          desc: a.description || '',
+          imageUrl: a.image_url,
+          startPrice: a.start_price,
+          bidIncrement: a.bid_increment,
+          currentPrice: a.current_price,
+          endTime: a.end_time,
+          sellerId: a.seller_id,
+          sellerName: a.seller_name,
+          highestBidderId: a.highest_bidder_id,
+          highestBidderName: a.highest_bidder_name,
+          bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
+            bidderId: b.bidder_id,
+            bidderName: b.bidder_name,
+            amount: b.amount,
+            time: new Date(b.created_at).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })
+          }))
+        }));
+      }
+      renderAuctions();
+      if (activeDetailAuctionId) renderDetailModalContent();
+    }
+
+    // 登入方式 1：Google / IG OAuth
+    async function oauthLogin(provider) {
+      if (!sb) return alert('請先填入 SUPABASE_URL 與 SUPABASE_ANON_KEY');
+      const { error } = await sb.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+      if (error) alert('OAuth 登入錯誤：' + error.message);
+    }
+
+    // 登入方式 2：Email 快速登入/自動註冊
+    async function emailQuickAuth(e) {
+      e.preventDefault();
+      if (!sb) return alert('請先填入 SUPABASE_URL 與 SUPABASE_ANON_KEY');
+      const email = document.getElementById('authEmail').value.trim();
+      const password = document.getElementById('authPassword').value;
+      const btn = document.getElementById('emailAuthBtn');
+      btn.disabled = true; btn.textContent = '處理中...';
+
+      // 先嘗試登入，若帳號不存在則自動註冊
+      let { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if (error && error.message.includes('Invalid login credentials')) {
+        const signUpRes = await sb.auth.signUp({ email, password });
+        if (signUpRes.error) {
+          alert('登入/註冊失敗：' + signUpRes.error.message);
+          btn.disabled = false; btn.textContent = 'Email 一鍵登入 / 自動註冊';
+          return;
+        }
+      } else if (error) {
+        alert('錯誤：' + error.message);
+        btn.disabled = false; btn.textContent = 'Email 一鍵登入 / 自動註冊';
+        return;
+      }
+      btn.disabled = false; btn.textContent = 'Email 一鍵登入 / 自動註冊';
+      closeLoginModal();
+    }
+
+    // 儲存用戶名稱與綁定電話
+    async function handleProfileSave(e) {
+      e.preventDefault();
+      const nickname = document.getElementById('profileNickname').value.trim();
+      const phone = document.getElementById('profilePhone').value.trim();
+      if (!nickname || !/^[0-9]{8}$/.test(phone)) return alert('請填寫名稱與 8 位數香港電話！');
+
+      const { error } = await sb.from('profiles').upsert({
+        id: currentUser.id,
+        nickname,
+        phone
+      });
+      if (error) return alert('儲存失敗：' + error.message);
+
+      currentUser.nickname = nickname;
+      currentUser.phone = phone;
+      document.getElementById('profileModal').classList.add('hidden');
+      updateAuthUI();
+    }
+
+    async function logout() {
+      if (sb) await sb.auth.signOut();
+      currentUser = null;
+      updateAuthUI();
+      switchView('all');
+    }
+
+    function updateAuthUI() {
+      const guestView = document.getElementById('guestAuthView');
+      const userView = document.getElementById('userAuthView');
+      const adminUploadBtn = document.getElementById('adminUploadBtn');
+      const adminBanner = document.getElementById('adminBanner');
+
+      if (currentUser) {
+        guestView.classList.add('hidden');
+        userView.classList.remove('hidden');
+        document.getElementById('userNameDisplay').textContent = currentUser.nickname || '未設定名稱';
+        document.getElementById('userAvatarBadge').textContent = (currentUser.nickname || 'U').charAt(0).toUpperCase();
+
+        const roleBadge = document.getElementById('userRoleBadge');
+        if (currentUser.isAdmin) {
+          roleBadge.textContent = '官方管理員';
+          roleBadge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-amber-500 text-white font-bold';
+          adminUploadBtn.classList.remove('hidden');
+          adminBanner.classList.remove('hidden');
+        } else {
+          roleBadge.textContent = '買家';
+          roleBadge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200';
+          adminUploadBtn.classList.add('hidden');
+          adminBanner.classList.add('hidden');
+        }
+      } else {
+        guestView.classList.remove('hidden');
+        userView.classList.add('hidden');
+        adminBanner.classList.add('hidden');
+      }
+    }
+
+    // 官方上架拍賣品 (上傳圖片至 Storage + 寫入 auctions 表)
+    function previewSelectedImage(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      selectedFileObj = file;
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = document.getElementById('imagePreview');
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        document.getElementById('uploadPlaceholder').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    async function handleCreateAuction(e) {
+      e.preventDefault();
+      if (!currentUser?.isAdmin) return alert('只有官方管理員可上架！');
+      if (!selectedFileObj) return alert('請選擇相片！');
+
+      const btn = document.getElementById('publishBtn');
+      btn.disabled = true; btn.textContent = '上傳中...';
+
+      try {
+        const ext = selectedFileObj.name.split('.').pop();
+        const filePath = `${currentUser.id}/${Date.now()}.${ext}`;
+        const { error: upErr } = await sb.storage.from('item-images').upload(filePath, selectedFileObj);
+        if (upErr) throw upErr;
+
+        const { data: urlData } = sb.storage.from('item-images').getPublicUrl(filePath);
+        const startPrice = Number(document.getElementById('startPrice').value);
+
+        const { error: dbErr } = await sb.from('auctions').insert([{
+          title: document.getElementById('itemTitle').value.trim(),
+          category: document.getElementById('itemCategory').value,
+          location: document.getElementById('itemLocation').value.trim(),
+          description: document.getElementById('itemDesc').value.trim(),
+          image_url: urlData.publicUrl,
+          start_price: startPrice,
+          bid_increment: Number(document.getElementById('bidIncrement').value),
+          current_price: startPrice,
+          end_time: new Date(document.getElementById('endTime').value).toISOString(),
+          seller_id: currentUser.id,
+          seller_name: currentUser.nickname
+        }]);
+        if (dbErr) throw dbErr;
+
+        closeUploadModal();
+        await fetchAuctions();
+      } catch (err) {
+        alert('上架失敗：' + err.message);
+      } finally {
+        btn.disabled = false; btn.textContent = '發布競標';
+      }
+    }
+
+    // 呼叫 Supabase RPC (place_bid) 進行安全出價
+    async function handlePlaceBid(e, auctionId) {
+      e.preventDefault();
+      if (!currentUser) return openLoginModal();
+      if (!currentUser.phone) return openProfileModal(true);
+
+      const amount = Number(document.getElementById('bidAmountInput').value);
+      const { error } = await sb.rpc('place_bid', {
+        p_auction_id: auctionId,
+        p_amount: amount
+      });
+
+      if (error) {
+        alert('出價失敗：' + error.message);
+      } else {
+        await fetchAuctions();
+      }
+    }
+
+    // 倒數計時與畫面渲染
+    function getCountdownInfo(endTimeIso) {
+      const diff = new Date(endTimeIso).getTime() - Date.now();
+      if (diff <= 0) return { ended: true, text: '已截標結束', urgent: false };
+      const d = Math.floor(diff / 86400000);
+      const h = Math.floor((diff / 3600000) % 24);
+      const m = Math.floor((diff / 60000) % 60);
+      const s = Math.floor((diff / 1000) % 60);
+      const text = d > 0 ? `剩餘 ${d}日 ${h}時 ${m}分` : `剩餘 ${h}時 ${m}分 ${s}秒`;
+      return { ended: false, text, urgent: diff < 3600000 };
+    }
+
+    function renderAuctions() {
+      const grid = document.getElementById('auctionsGrid');
+      const empty = document.getElementById('emptyState');
+      const kw = (document.getElementById('searchInput')?.value || '').toLowerCase();
+
+      const filtered = auctions.filter(a => {
+        const mView = currentView === 'all' ? true : (currentUser && a.bids.some(b => b.bidderId === currentUser.id));
+        const mCat = currentCategory === '全部' ? true : a.category === currentCategory;
+        const mKw = a.title.toLowerCase().includes(kw) || a.desc.toLowerCase().includes(kw);
+        return mView && mCat && mKw;
+      });
+
+      if (!filtered.length) { grid.innerHTML = ''; empty.classList.remove('hidden'); return; }
+      empty.classList.add('hidden');
+
+      grid.innerHTML = filtered.map(item => {
+        const cd = getCountdownInfo(item.endTime);
+        const isLeading = currentUser && item.highestBidderId === currentUser.id;
+        const nextMinBid = item.bids.length === 0 ? item.startPrice : item.currentPrice + item.bidIncrement;
+
+        return `
+          <div onclick="openDetailModal('${item.id}')" class="bg-white rounded-2xl border ${isLeading ? 'border-amber-400 ring-2 ring-amber-400/20' : 'border-slate-200'} overflow-hidden shadow-sm hover:shadow-md transition flex flex-col cursor-pointer group">
+            <div class="relative h-52 bg-slate-100 overflow-hidden">
+              <img src="${item.imageUrl}" class="w-full h-full object-cover group-hover:scale-105 transition ${cd.ended ? 'opacity-65 grayscale-[30%]' : ''}">
+              <div class="absolute top-3 left-3 flex gap-1.5">
+                <span data-countdown-id="${item.id}" class="px-2.5 py-1 rounded-full text-[11px] font-bold text-white ${cd.ended ? 'bg-slate-800' : (cd.urgent ? 'bg-rose-600' : 'bg-emerald-600')}">${cd.text}</span>
+                ${isLeading ? `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500 text-white">${cd.ended ? '🎉 你已得標' : '👑 領先中'}</span>` : ''}
+              </div>
+              <span class="absolute bottom-2.5 right-2.5 bg-slate-900/75 text-white text-[11px] px-2.5 py-0.5 rounded-md">${item.bids.length} 次出價</span>
+            </div>
+            <div class="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="font-bold text-slate-800 text-sm mb-2 line-clamp-2">${item.title}</h3>
+                <div class="bg-slate-50 rounded-xl p-2.5 border border-slate-100 mb-3">
+                  <div class="flex justify-between text-[11px] text-slate-400">
+                    <span>${item.bids.length > 0 ? '目前最高價' : '底價'}</span>
+                    <span>每口 +$${item.bidIncrement}</span>
+                  </div>
+                  <div class="flex justify-between items-baseline mt-0.5">
+                    <span class="text-lg font-extrabold text-amber-600">HK$ ${item.currentPrice}</span>
+                    <span class="text-[11px] text-slate-500">${item.highestBidderName || '暫無人出價'}</span>
+                  </div>
+                </div>
+              </div>
+              <button class="w-full py-2 rounded-xl text-xs font-bold ${cd.ended ? 'bg-slate-100 text-slate-500' : 'bg-slate-900 group-hover:bg-amber-500 text-white'}">
+                ${cd.ended ? '查看結果' : `立即出價 (最低 $${nextMinBid})`}
+              </button>
+            </div>
+          </div>`;
+      }).join('');
+    }
+
+    async function openDetailModal(id) {
+      activeDetailAuctionId = id;
+      await renderDetailModalContent();
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+    function closeDetailModal() { activeDetailAuctionId = null; document.getElementById('detailModal').classList.add('hidden'); }
+
+    async function renderDetailModalContent() {
+      const item = auctions.find(a => a.id === activeDetailAuctionId);
+      if (!item) return;
+      const cd = getCountdownInfo(item.endTime);
+      const nextMinBid = item.bids.length === 0 ? item.startPrice : item.currentPrice + item.bidIncrement;
+
+      document.getElementById('detailImg').src = item.imageUrl;
+      document.getElementById('detailCat').textContent = item.category;
+      document.getElementById('detailLocation').textContent = item.location;
+      document.getElementById('detailTitle').textContent = item.title;
+      document.getElementById('detailDesc').textContent = item.desc;
+      document.getElementById('detailStartPrice').textContent = item.startPrice;
+      document.getElementById('detailIncrement').textContent = item.bidIncrement;
+      document.getElementById('detailCurrentPrice').textContent = `HK$ ${item.currentPrice}`;
+      document.getElementById('detailBidCount').textContent = item.bids.length;
+      document.getElementById('detailCountdownText').textContent = cd.text;
+      document.getElementById('detailHighestBidder').textContent = item.highestBidderName ? `領先：${item.highestBidderName}` : '尚未出價';
+
+      // 官方管理員查詢最高出價者電話
+      const adminBox = document.getElementById('adminWinnerContactBox');
+      if (currentUser?.isAdmin && item.highestBidderId) {
+        const { data: winnerProf } = await sb.from('profiles').select('phone').eq('id', item.highestBidderId).maybeSingle();
+        const phone = winnerProf?.phone || '未記錄';
+        adminBox.classList.remove('hidden');
+        adminBox.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div><b>得標/領先買家電話 (僅官方可見)：</b> +852 ${phone}</div>
+            <a href="https://wa.me/852${phone}" target="_blank" class="bg-emerald-600 text-white px-2.5 py-1 rounded font-bold">WhatsApp</a>
+          </div>`;
+      } else {
+        adminBox.classList.add('hidden');
+      }
+
+      const actionArea = document.getElementById('bidActionArea');
+      if (cd.ended) {
+        actionArea.innerHTML = `<div class="bg-slate-100 text-slate-600 p-3 rounded-xl text-center text-xs font-bold">拍賣已截標結束</div>`;
+      } else if (!currentUser) {
+        actionArea.innerHTML = `<button onclick="closeDetailModal(); openLoginModal();" class="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold">請先登入以參與出價</button>`;
+      } else {
+        actionArea.innerHTML = `
+          <form onsubmit="handlePlaceBid(event, '${item.id}')" class="flex space-x-2">
+            <input type="number" id="bidAmountInput" required min="${nextMinBid}" step="${item.bidIncrement}" value="${nextMinBid}" class="flex-1 px-3 py-2 border-2 border-amber-400 rounded-xl text-sm font-extrabold">
+            <button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white px-5 py-2 rounded-xl text-sm font-bold">出價</button>
+          </form>`;
+      }
+
+      const historyList = document.getElementById('bidHistoryList');
+      historyList.innerHTML = item.bids.length === 0
+        ? `<div class="text-slate-400 py-3 text-center">暫無出價紀錄</div>`
+        : item.bids.map((b, i) => `<div class="flex justify-between p-2 rounded ${i === 0 ? 'bg-amber-50 font-bold' : 'bg-slate-50'}"><span>${b.bidderName}</span><span>HK$ ${b.amount} <small class="text-slate-400">${b.time}</small></span></div>`).join('');
+    }
+
+    function openLoginModal() { document.getElementById('loginModal').classList.remove('hidden'); }
+    function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+    function openProfileModal(isFirst) {
+      document.getElementById('profileNickname').value = currentUser?.nickname || '';
+      document.getElementById('profilePhone').value = currentUser?.phone || '';
+      document.getElementById('cancelProfileBtn').classList.toggle('hidden', isFirst);
+      document.getElementById('profileModal').classList.remove('hidden');
+    }
+    function openUploadModal() {
+      document.getElementById('uploadForm').reset();
+      selectedFileObj = null;
+      document.getElementById('imagePreview').classList.add('hidden');
+      document.getElementById('uploadPlaceholder').classList.remove('hidden');
+      document.getElementById('uploadModal').classList.remove('hidden');
+    }
+    function closeUploadModal() { document.getElementById('uploadModal').classList.add('hidden'); }
+    function switchView(v) { currentView = v; renderAuctions(); }
+    function setCategory(c) { currentCategory = c; renderAuctions(); }
+
+    setInterval(() => {
+      document.querySelectorAll('[data-countdown-id]').forEach(el => {
+        const item = auctions.find(a => a.id === el.getAttribute('data-countdown-id'));
+        if (item) el.textContent = getCountdownInfo(item.endTime).text;
+      });
+    }, 1000);
+
+    initApp();
+  </script>
+</body>
+</html>
