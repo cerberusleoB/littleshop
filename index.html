@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-HK">
 <head>
+  <!-- ==================== [模塊 1：網頁標頭與全域設定] ==================== -->
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>一間小店 | 收藏限時拍賣購買</title>
@@ -105,7 +106,7 @@
         <i class="fa-solid fa-crown text-amber-600 text-xl"></i>
         <div>
           <h3 class="text-sm font-bold text-amber-950">官方管理員模式 (is_admin = true)</h3>
-          <p class="text-xs text-amber-800">可上架拍賣品、隱藏物品、查看得標者 WhatsApp 電話，並向指定用戶發送客製化站內訊息。</p>
+          <p class="text-xs text-amber-800">可上架拍賣品、隱藏物品、查看得標者電話，並發送站內訊息。</p>
         </div>
       </div>
       <div class="flex space-x-2">
@@ -126,7 +127,8 @@
   </main>
 
   <!-- ==================== [模塊 5：站內訊息中心 Modal] ==================== -->
-  <div id="messagesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <!-- 加入了點擊黑底自動關閉 (onclick event) -->
+  <div id="messagesModal" onclick="if(event.target === this) document.getElementById('messagesModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-6 shadow-2xl modal-enter flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-900"><i class="fa-regular fa-bell text-amber-500 mr-2"></i>站內訊息中心</h3>
@@ -137,7 +139,7 @@
   </div>
 
   <!-- ==================== [模塊 6：管理員發送訊息 Modal] ==================== -->
-  <div id="adminMsgModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="adminMsgModal" onclick="if(event.target === this) closeAdminMsgModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-6 shadow-2xl modal-enter">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
         <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-paper-plane text-amber-500 mr-2"></i>管理員發送站內訊息</h3>
@@ -149,7 +151,7 @@
           <input type="text" id="adminTargetUuid" required placeholder="例如：123e4567-e89b..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-600 mb-1">訊息上款 (預設為系統訊息，可修改)</label>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">訊息上款</label>
           <input type="text" id="adminSenderName" value="系統訊息" required class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
         </div>
         <div>
@@ -165,7 +167,7 @@
   </div>
 
   <!-- ==================== [模塊 7：登入與註冊 Modal] ==================== -->
-  <div id="loginModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="loginModal" onclick="if(event.target === this) closeLoginModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-enter">
       <div class="flex justify-between items-center mb-2">
         <h3 class="text-lg font-bold text-slate-900">登入參與競標</h3>
@@ -197,7 +199,7 @@
   </div>
 
   <!-- ==================== [模塊 8：個人資料設定 Modal] ==================== -->
-  <div id="profileModal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+  <div id="profileModal" onclick="if(event.target === this && !document.getElementById('cancelProfileBtn').classList.contains('hidden')) document.getElementById('profileModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-md w-full p-6 shadow-2xl modal-enter max-h-[85vh] overflow-y-auto">
       <div class="flex items-center space-x-3 mb-3 bg-amber-50 p-3 rounded-xl border border-amber-200">
         <div class="w-10 h-10 rounded-full bg-amber-500 text-white flex items-center justify-center text-lg shrink-0">
@@ -245,16 +247,17 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 9：官方上架 Modal (含多圖與智慧預設)] ==================== -->
-  <div id="uploadModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+  <!-- ==================== [模塊 9：官方上架 Modal (含多圖與直接拍照)] ==================== -->
+  <div id="uploadModal" onclick="if(event.target === this) closeUploadModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-6 shadow-xl modal-enter my-8 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-gavel text-amber-500 mr-2"></i>官方上架新拍賣品 (最多5張)</h3>
-        <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <h3 class="text-lg font-bold text-slate-900"><i class="fa-solid fa-gavel text-amber-500 mr-2"></i>官方上架新拍賣品</h3>
+        <button type="button" onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <form id="uploadForm" onsubmit="handleCreateAuction(event)" class="space-y-4">
         <div>
           <label class="block text-xs font-semibold text-slate-500 mb-1">貨品相片 (最多 5 張) *</label>
+          <!-- 支援相簿與直接拍照按鈕 -->
           <div class="grid grid-cols-2 gap-2 mb-2">
             <button type="button" onclick="document.getElementById('imageFileInput').click()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 py-2 rounded-lg text-xs font-bold border border-slate-300">
               <i class="fa-regular fa-image mr-1"></i> 從相簿選擇
@@ -266,10 +269,11 @@
           <div class="border-2 border-dashed border-slate-300 rounded-xl p-4 text-center bg-slate-50 relative overflow-hidden h-36 flex flex-col items-center justify-center">
             <div id="uploadPlaceholder">
               <i class="fa-regular fa-images text-3xl text-slate-400 mb-2"></i>
-              <p class="text-xs font-medium text-slate-500">選擇或拍攝照片 (最多5張)</p>
+              <p class="text-xs font-medium text-slate-500">上傳結果將預覽於此</p>
             </div>
             <div id="imagePreviewContainer" class="hidden absolute inset-0 w-full h-full flex items-center justify-center gap-2 p-2 bg-white overflow-x-auto"></div>
           </div>
+          <!-- 隱藏的 input: imageFileInput (選圖) / cameraFileInput (拍照) -->
           <input type="file" id="imageFileInput" accept="image/*" multiple class="hidden" onchange="previewSelectedImages(event)">
           <input type="file" id="cameraFileInput" accept="image/*" capture="environment" multiple class="hidden" onchange="previewSelectedImages(event)">
         </div>
@@ -337,17 +341,22 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 10：拍賣詳情與出價 Modal] ==================== -->
-  <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
-    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8 max-h-[90vh] overflow-y-auto">
+  <!-- ==================== [模塊 10：拍賣詳情與出價 Modal (支援多圖滑動與隱藏切換)] ==================== -->
+  <div id="detailModal" onclick="if(event.target === this) closeDetailModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8 max-h-[90vh] overflow-y-auto cursor-default">
       <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between relative">
         <!-- Admin 專用隱藏/顯示切換按鈕 -->
-        <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()" class="hidden absolute top-3 right-3 z-10 bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition"></button>
+        <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()" class="hidden absolute top-3 right-3 z-20 bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition"></button>
         
-        <div class="relative h-64 md:h-80 bg-slate-900/5 flex items-center justify-center">
-          <img id="detailImg" src="" class="w-full h-full object-contain">
-          <span id="detailStatusBadge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold"></span>
+        <div class="relative h-64 md:h-80 bg-slate-900/5">
+          <!-- 圖片滑動容器 -->
+          <div id="detailImgContainer" class="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth" style="scrollbar-width: none;"></div>
+          <!-- 狀態標籤 -->
+          <span id="detailStatusBadge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold z-10"></span>
+          <!-- 多圖滑動提示 -->
+          <div id="multiImgIndicator" class="absolute bottom-3 left-0 right-0 flex justify-center z-10 hidden"></div>
         </div>
+        
         <div class="p-5 bg-white border-t border-slate-100 flex-1">
           <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
             <span id="detailCat" class="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded"></span>
@@ -449,7 +458,7 @@
       }
     }
 
-    /* ==================== [子模塊：站內訊息與管理員通知] ==================== */
+    /* ==================== [子模塊：站內訊息與獲取拍賣資料] ==================== */
     async function fetchUserMessages() {
       if (!currentUser || !sb) return;
       const { data } = await sb.from('messages').select('*').eq('user_id', currentUser.id).order('created_at', { ascending: false });
@@ -470,29 +479,34 @@
       const { data: bidsData } = await sb.from('bids').select('*').order('amount', { ascending: false });
 
       if (aucData) {
-        auctions = aucData.map(a => ({
-          id: a.id,
-          title: a.title,
-          category: a.category,
-          location: a.location,
-          desc: a.description || '',
-          imageUrl: a.image_url,
-          startPrice: a.start_price,
-          bidIncrement: a.bid_increment,
-          currentPrice: a.current_price,
-          endTime: a.end_time,
-          sellerId: a.seller_id,
-          sellerName: a.seller_name,
-          highestBidderId: a.highest_bidder_id,
-          highestBidderName: a.highest_bidder_name,
-          is_visible: a.is_visible !== false, // 支援隱藏功能，預設為 true
-          bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
-            bidderId: b.bidder_id,
-            bidderName: b.bidder_name,
-            amount: b.amount,
-            time: new Date(b.created_at).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })
-          }))
-        }));
+        auctions = aucData.map(a => {
+          // 解析多圖片逗號分隔字串
+          const urls = a.image_url ? a.image_url.split(',') : [];
+          return {
+            id: a.id,
+            title: a.title,
+            category: a.category,
+            location: a.location,
+            desc: a.description || '',
+            imageUrl: urls[0] || '', // 封面首圖
+            imageUrls: urls,         // 所有圖片陣列
+            startPrice: a.start_price,
+            bidIncrement: a.bid_increment,
+            currentPrice: a.current_price,
+            endTime: a.end_time,
+            sellerId: a.seller_id,
+            sellerName: a.seller_name,
+            highestBidderId: a.highest_bidder_id,
+            highestBidderName: a.highest_bidder_name,
+            is_visible: a.is_visible !== false,
+            bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
+              bidderId: b.bidder_id,
+              bidderName: b.bidder_name,
+              amount: b.amount,
+              time: new Date(b.created_at).toLocaleTimeString('zh-HK', { hour: '2-digit', minute: '2-digit' })
+            }))
+          };
+        });
       }
       renderAuctions();
       if (activeDetailAuctionId) renderDetailModalContent();
@@ -680,12 +694,13 @@
       const files = Array.from(event.target.files);
       if (files.length === 0) return;
 
-      if (files.length > 5) {
-        alert('⚠️ 單一物件最多只能選擇 5 張相片！系統將自動選取前 5 張。');
-        selectedFilesArray = files.slice(0, 5);
-      } else {
-        selectedFilesArray = files;
+      // 支援將新選擇的檔案加入現有陣列（總數不超過5張）
+      let combinedFiles = selectedFilesArray.concat(files);
+      if (combinedFiles.length > 5) {
+        alert('⚠️ 單一物件最多只能上傳 5 張相片！');
+        combinedFiles = combinedFiles.slice(0, 5);
       }
+      selectedFilesArray = combinedFiles;
 
       const container = document.getElementById('imagePreviewContainer');
       container.innerHTML = '';
@@ -711,18 +726,24 @@
       if (selectedFilesArray.length === 0) return alert('請至少選擇一張相片！');
 
       const btn = document.getElementById('publishBtn');
-      btn.disabled = true; btn.textContent = '上傳中...';
+      btn.disabled = true; btn.textContent = '圖片上傳中...';
 
       try {
-        const primaryFile = selectedFilesArray[0];
-        const ext = primaryFile.name.split('.').pop();
-        const filePath = `${currentUser.id}/${Date.now()}.${ext}`;
-        const { error: upErr } = await sb.storage.from('item-images').upload(filePath, primaryFile);
-        if (upErr) throw upErr;
-
-        const { data: urlData } = sb.storage.from('item-images').getPublicUrl(filePath);
-        const startPrice = Number(document.getElementById('startPrice').value);
+        const uploadedUrls = [];
         
+        // 迴圈處理每一張圖片上傳
+        for (const file of selectedFilesArray) {
+          const ext = file.name ? file.name.split('.').pop() : 'jpg';
+          const filePath = `${currentUser.id}/${Date.now()}_${Math.random().toString(36).substring(2,7)}.${ext}`;
+          
+          const { error: upErr } = await sb.storage.from('item-images').upload(filePath, file);
+          if (upErr) throw upErr;
+
+          const { data: urlData } = sb.storage.from('item-images').getPublicUrl(filePath);
+          uploadedUrls.push(urlData.publicUrl);
+        }
+
+        const startPrice = Number(document.getElementById('startPrice').value);
         const method = document.getElementById('itemMethod').value;
         const location = document.getElementById('itemLocation').value;
         const combinedLocation = `${method} (${location})`;
@@ -732,14 +753,14 @@
           category: document.getElementById('itemCategory').value,
           location: combinedLocation,
           description: document.getElementById('itemDesc').value.trim(),
-          image_url: urlData.publicUrl,
+          image_url: uploadedUrls.join(','), // 將多張圖片URL以逗號組合存入資料庫
           start_price: startPrice,
           bid_increment: Number(document.getElementById('bidIncrement').value),
           current_price: startPrice,
           end_time: new Date(document.getElementById('endTime').value).toISOString(),
           seller_id: currentUser.id,
           seller_name: currentUser.nickname,
-          is_visible: true // 預設上架時為可見
+          is_visible: true
         }]);
         if (dbErr) throw dbErr;
 
@@ -790,7 +811,7 @@
       const empty = document.getElementById('emptyState');
       const kw = (document.getElementById('searchInput')?.value || '').toLowerCase();
 
-      // 過濾邏輯：Admin 可看全部，非 Admin 只能看 is_visible = true 的物品
+      // 過濾條件：管理員看全部，一般用戶只看 is_visible = true
       const filtered = auctions.filter(a => {
         const mVisible = (currentUser && currentUser.isAdmin) ? true : a.is_visible;
         const mView = currentView === 'all' ? true : (currentUser && a.bids.some(b => b.bidderId === currentUser.id));
@@ -806,7 +827,8 @@
         const cd = getCountdownInfo(item.endTime);
         const isLeading = currentUser && item.highestBidderId === currentUser.id;
         const nextMinBid = item.bids.length === 0 ? item.startPrice : item.currentPrice + item.bidIncrement;
-        // 如果物品已隱藏，且目前是 Admin 在看，加上灰階與半透明視覺提示
+        
+        // 隱藏狀態的視覺提示 (僅管理員可見)
         const hiddenStyle = !item.is_visible ? 'opacity-60 grayscale-[50%] border-dashed' : 'border-slate-200';
         const hiddenBadge = !item.is_visible ? `<span class="absolute top-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-white z-10"><i class="fa-solid fa-eye-slash mr-1"></i>已隱藏</span>` : '';
 
@@ -861,7 +883,7 @@
       
       const { error } = await sb.from('auctions').update({ is_visible: newStatus }).eq('id', activeDetailAuctionId);
       if (error) {
-        alert('狀態切換失敗：' + error.message);
+        alert('狀態切換失敗 (請確定是否有建立UPDATE權限政策)：' + error.message);
       } else {
         item.is_visible = newStatus;
         renderDetailModalContent();
@@ -875,22 +897,35 @@
       const cd = getCountdownInfo(item.endTime);
       const nextMinBid = item.bids.length === 0 ? item.startPrice : item.currentPrice + item.bidIncrement;
 
-      // 處理 Admin 的隱藏/顯示按鈕
+      // 處理 Admin 隱藏/顯示按鈕
       const visBtn = document.getElementById('adminVisibilityBtn');
       if (currentUser && currentUser.isAdmin) {
         visBtn.classList.remove('hidden');
         if (item.is_visible) {
-          visBtn.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i>隱藏此物品';
-          visBtn.className = "absolute top-3 right-3 z-10 bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          visBtn.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i>設為隱藏';
+          visBtn.className = "absolute top-3 right-3 z-20 bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
         } else {
           visBtn.innerHTML = '<i class="fa-solid fa-eye mr-1"></i>設為公開可見';
-          visBtn.className = "absolute top-3 right-3 z-10 bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          visBtn.className = "absolute top-3 right-3 z-20 bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
         }
       } else {
         visBtn.classList.add('hidden');
       }
 
-      document.getElementById('detailImg').src = item.imageUrl;
+      // 處理多圖片渲染
+      const imgContainer = document.getElementById('detailImgContainer');
+      imgContainer.innerHTML = item.imageUrls.map(url => `
+        <img src="${url}" class="w-full h-full object-contain shrink-0 snap-center">
+      `).join('');
+
+      const indicator = document.getElementById('multiImgIndicator');
+      if (item.imageUrls.length > 1) {
+        indicator.innerHTML = `<div class="bg-black/40 backdrop-blur-sm text-white text-[10px] px-2.5 py-1 rounded-full shadow-sm">左右滑動查看共 ${item.imageUrls.length} 張圖片</div>`;
+        indicator.classList.remove('hidden');
+      } else {
+        indicator.classList.add('hidden');
+      }
+
       document.getElementById('detailCat').textContent = item.category;
       document.getElementById('detailLocation').textContent = item.location;
       document.getElementById('detailTitle').textContent = item.title;
