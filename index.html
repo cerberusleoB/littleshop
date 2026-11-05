@@ -22,13 +22,13 @@
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans relative">
 
   <!-- ==================== [模塊 2：頂部導航欄與狀態區] ==================== -->
   <header class="bg-white shadow-sm sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
       
-      <!-- 替換為圖片 Logo 的區域 -->
+      <!-- 圖片 Logo 的區域 -->
       <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="switchView('all')">
         <div class="w-10 h-10 rounded-xl shadow-sm overflow-hidden bg-white shrink-0 border border-slate-100 flex items-center justify-center">
           <img src="./logo.png" alt="Logo" class="w-full h-full object-cover">
@@ -122,7 +122,7 @@
   </div>
 
   <!-- ==================== [模塊 4：主內容網格與管理員橫幅] ==================== -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
     <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
       <div class="flex items-center space-x-3">
         <i class="fa-solid fa-crown text-amber-600 text-xl"></i>
@@ -147,6 +147,18 @@
       <h3 class="text-lg font-medium text-slate-700">暫時沒有相關拍賣品</h3>
     </div>
   </main>
+
+  <!-- ==================== [模塊 11：懸浮 IG 追蹤按鈕] ==================== -->
+  <a href="https://www.instagram.com/one_little_shop" target="_blank" class="fixed z-40 right-4 bottom-6 sm:right-8 sm:bottom-8 group flex items-center justify-end">
+    <!-- 滑鼠 hover 時顯示的提示小泡泡 -->
+    <div class="mr-3 bg-white text-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none hidden sm:block">
+      追蹤最新動態 ✨
+    </div>
+    <!-- 經典漸層 IG 按鈕 -->
+    <div class="bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30 hover:scale-110 hover:-rotate-6 transition-transform duration-300">
+      <i class="fa-brands fa-instagram text-[26px]"></i>
+    </div>
+  </a>
 
   <!-- ==================== [模塊 5：站內訊息中心 Modal] ==================== -->
   <div id="messagesModal" onclick="if(event.target === this) document.getElementById('messagesModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -360,20 +372,19 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 10：拍賣詳情與出價 Modal (支援多圖滑動與隱藏/出價控制)] ==================== -->
+  <!-- ==================== [模塊 10：拍賣詳情與出價 Modal] ==================== -->
   <div id="detailModal" onclick="if(event.target === this) closeDetailModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8 max-h-[90vh] overflow-y-auto cursor-default relative">
       
       <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between relative group">
         
-        <!-- Admin 專用操作按鈕群組 (隱藏狀態 & 允許出價狀態) -->
+        <!-- Admin 專用操作按鈕群組 -->
         <div id="adminActionGroup" class="hidden absolute top-3 right-3 z-30 flex flex-col gap-1.5 items-end">
           <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()"></button>
           <button id="adminBiddableBtn" onclick="toggleAuctionBiddable()"></button>
         </div>
         
         <div class="relative h-64 md:h-80 bg-slate-900/5">
-          <!-- 圖片滑動容器 -->
           <div id="detailImgContainer" class="flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"></div>
           
           <button id="prevImgBtn" onclick="scrollDetailImages(-1)" class="hidden absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/30 hover:bg-black/60 text-white rounded-full flex items-center justify-center z-20 backdrop-blur-sm transition shadow-sm">
@@ -383,7 +394,6 @@
             <i class="fa-solid fa-chevron-right text-xs"></i>
           </button>
 
-          <!-- 狀態標籤 -->
           <span id="detailStatusBadge" class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-bold z-20"></span>
           
           <div id="multiImgIndicator" class="absolute bottom-3 left-0 right-0 flex justify-center z-20 hidden pointer-events-none"></div>
@@ -422,7 +432,6 @@
 
           <div id="adminWinnerContactBox" class="hidden mb-4 p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs"></div>
           
-          <!-- 出價操作區域 -->
           <div id="bidActionArea" class="mb-5"></div>
 
           <div>
@@ -434,7 +443,7 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 11：核心 JavaScript 邏輯] ==================== -->
+  <!-- ==================== [模塊 12：核心 JavaScript 邏輯] ==================== -->
   <script>
     const SUPABASE_URL = 'https://bauxsxftvkdqstjzfpvv.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_6OSI70WFyr6v9wFV9FM4Kw_G_4I8rt8';
@@ -531,8 +540,8 @@
             sellerName: a.seller_name,
             highestBidderId: a.highest_bidder_id,
             highestBidderName: a.highest_bidder_name,
-            is_visible: a.is_visible !== false, // 支援舊資料
-            is_biddable: a.is_biddable !== false, // 新增：是否允許出價
+            is_visible: a.is_visible !== false,
+            is_biddable: a.is_biddable !== false,
             bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
               bidderId: b.bidder_id,
               bidderName: b.bidder_name,
@@ -861,7 +870,6 @@
         
         const hiddenStyle = !item.is_visible ? 'opacity-60 grayscale-[50%] border-dashed' : 'border-slate-200';
         
-        // 生成多個狀態徽章的 HTML (隱藏 / 暫停出價)
         const badgesHtml = `
           <div class="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
             ${!item.is_visible ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-800 text-white shadow-sm"><i class="fa-solid fa-eye-slash mr-1"></i>已隱藏</span>` : ''}
@@ -869,7 +877,6 @@
           </div>
         `;
 
-        // 決定底部按鈕樣式與文字
         let btnHtml = '';
         if (cd.ended) {
           btnHtml = `<button class="w-full py-1.5 sm:py-2 rounded-xl text-[11px] sm:text-xs font-bold bg-slate-100 text-slate-500">查看結果</button>`;
@@ -920,7 +927,6 @@
       document.getElementById('detailModal').classList.add('hidden'); 
     }
 
-    // Admin 切換隱藏狀態
     async function toggleAuctionVisibility() {
       if (!currentUser?.isAdmin || !activeDetailAuctionId) return;
       const item = auctions.find(a => a.id === activeDetailAuctionId);
@@ -932,7 +938,6 @@
       renderAuctions();
     }
 
-    // Admin 切換出價狀態
     async function toggleAuctionBiddable() {
       if (!currentUser?.isAdmin || !activeDetailAuctionId) return;
       const item = auctions.find(a => a.id === activeDetailAuctionId);
@@ -963,7 +968,6 @@
       if (currentUser && currentUser.isAdmin) {
         adminGroup.classList.remove('hidden');
         
-        // 隱藏/顯示按鈕渲染
         if (item.is_visible) {
           visBtn.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i>設為隱藏';
           visBtn.className = "bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
@@ -972,7 +976,6 @@
           visBtn.className = "bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
         }
 
-        // 開放/暫停出價按鈕渲染
         if (item.is_biddable) {
           bidToggleBtn.innerHTML = '<i class="fa-solid fa-lock mr-1"></i>暫停出價';
           bidToggleBtn.className = "bg-rose-600/90 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
@@ -1021,7 +1024,6 @@
       if (cd.ended) {
         actionArea.innerHTML = `<div class="bg-slate-100 text-slate-600 p-3 rounded-xl text-center text-xs font-bold">拍賣已截標結束</div>`;
       } else if (!item.is_biddable) {
-        // 當暫停出價時，鎖定出價框
         actionArea.innerHTML = `<div class="bg-rose-50 text-rose-600 p-3 rounded-xl text-center text-xs font-bold border border-rose-200"><i class="fa-solid fa-lock mr-1"></i>此拍賣品目前已由管理員暫停出價</div>`;
       } else if (!currentUser) {
         actionArea.innerHTML = `<button onclick="closeDetailModal(); openLoginModal();" class="w-full bg-slate-900 text-white py-3 rounded-xl text-sm font-bold">請先登入以參與出價</button>`;
