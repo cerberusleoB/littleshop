@@ -15,6 +15,11 @@
     /* 隱藏滾動條但保留滑動功能 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    /* 滾動公告欄專用動畫 */
+    .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
+    .marquee-text { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
@@ -22,9 +27,12 @@
   <!-- ==================== [模塊 2：頂部導航欄與狀態區] ==================== -->
   <header class="bg-white shadow-sm sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+      
+      <!-- 替換為圖片 Logo 的區域 -->
       <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="switchView('all')">
-        <div class="bg-amber-500 text-white p-2 rounded-lg shadow-md">
-          <i class="fa-solid fa-gavel text-lg"></i>
+        <div class="w-10 h-10 rounded-xl shadow-sm overflow-hidden bg-white shrink-0 border border-slate-100 flex items-center justify-center">
+          <!-- 請確保已將裁切好的 logo.png 上傳至 GitHub -->
+          <img src="./logo.png" alt="Logo" class="w-full h-full object-cover">
         </div>
         <div>
           <span class="font-bold text-lg sm:text-xl tracking-tight text-slate-900">一間小店</span>
@@ -81,8 +89,20 @@
     </div>
   </header>
 
+  <!-- ==================== [模塊 2.5：滾動公告欄] ==================== -->
+  <div class="bg-amber-50 border-b border-amber-100 py-1.5 sm:py-2 text-xs sm:text-sm text-amber-900 flex items-center z-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full flex items-center">
+      <i class="fa-solid fa-bullhorn text-amber-500 mr-2 shrink-0"></i>
+      <div class="marquee-container">
+        <div class="marquee-text font-medium tracking-wide">
+          目前還未正式上線，可以先追蹤 <a href="https://www.instagram.com/one_little_shop" target="_blank" class="text-rose-500 font-bold hover:text-rose-600 underline mx-1">IG</a> 看最新情況 ✨
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ==================== [模塊 3：視角與分類切換列] ==================== -->
-  <div class="bg-white border-b border-slate-200">
+  <div class="bg-white border-b border-slate-200 shadow-sm relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-wrap items-center justify-between gap-4">
       <div class="flex space-x-2">
         <button id="tabAll" onclick="switchView('all')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-900 text-white shadow-sm transition">
@@ -509,7 +529,7 @@
             sellerName: a.seller_name,
             highestBidderId: a.highest_bidder_id,
             highestBidderName: a.highest_bidder_name,
-            is_visible: a.is_visible !== false, // 確保舊資料也能正確讀取
+            is_visible: a.is_visible !== false,
             bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
               bidderId: b.bidder_id,
               bidderName: b.bidder_name,
@@ -896,7 +916,6 @@
       }
     }
 
-    // 控制左右滑動相片的按鈕
     function scrollDetailImages(direction) {
       const container = document.getElementById('detailImgContainer');
       const scrollAmount = container.clientWidth;
@@ -923,15 +942,13 @@
         visBtn.classList.add('hidden');
       }
 
-      // 渲染多圖片，加入 min-w-full 保證可以滑動
       const imgContainer = document.getElementById('detailImgContainer');
       imgContainer.innerHTML = item.imageUrls.map(url => `
-        <div class="min-w-full w-full h-full flex items-center justify-center snap-center shrink-0">
+        <div class="min-w-full w-full h-full flex items-center justify-center snap-center shrink-0 p-2">
           <img src="${url}" class="max-w-full max-h-full object-contain drop-shadow-sm">
         </div>
       `).join('');
 
-      // 控制多圖指示器與左右箭咀
       const indicator = document.getElementById('multiImgIndicator');
       const prevBtn = document.getElementById('prevImgBtn');
       const nextBtn = document.getElementById('nextImgBtn');
