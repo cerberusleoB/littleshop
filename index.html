@@ -12,11 +12,8 @@
     .modal-enter { animation: fadeIn 0.2s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
     .line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-    /* 隱藏滾動條但保留滑動功能 */
     .no-scrollbar::-webkit-scrollbar { display: none; }
     .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-    
-    /* 滾動公告欄專用動畫 */
     .marquee-container { width: 100%; overflow: hidden; white-space: nowrap; }
     .marquee-text { display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite; }
     @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
@@ -28,7 +25,6 @@
   <header class="bg-white shadow-sm sticky top-0 z-30">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
       
-      <!-- 圖片 Logo 的區域 -->
       <div class="flex items-center space-x-2.5 cursor-pointer shrink-0" onclick="switchView('all')">
         <div class="w-10 h-10 rounded-xl shadow-sm overflow-hidden bg-white shrink-0 border border-slate-100 flex items-center justify-center">
           <img src="./logo.png" alt="Logo" class="w-full h-full object-cover">
@@ -46,7 +42,6 @@
         </div>
       </div>
 
-      <!-- 右上角身份區 -->
       <div class="flex items-center space-x-2 shrink-0">
         <div id="guestAuthView" class="flex items-center space-x-2">
           <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-slate-100 text-slate-600 border border-slate-200">
@@ -103,7 +98,6 @@
   <!-- ==================== [模塊 3：視角、分類、排序與版面切換列] ==================== -->
   <div class="bg-white border-b border-slate-200 shadow-sm relative z-10">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex flex-col gap-3">
-      <!-- 上半部：視角與分類 -->
       <div class="flex flex-wrap items-center justify-between gap-4">
         <div class="flex space-x-2">
           <button id="tabAll" onclick="switchView('all')" class="px-4 py-1.5 rounded-full text-sm font-medium bg-slate-900 text-white shadow-sm transition">
@@ -121,7 +115,6 @@
           <button onclick="setCategory('其他')" class="cat-btn shrink-0 px-3 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="其他">其他</button>
         </div>
       </div>
-      <!-- 下半部：排序與顯示切換 -->
       <div class="flex items-center justify-between pt-2 border-t border-slate-100">
         <div class="flex items-center space-x-2">
           <span class="text-slate-400 text-xs font-medium"><i class="fa-solid fa-arrow-down-a-z mr-1"></i>排序:</span>
@@ -133,9 +126,7 @@
           </select>
         </div>
         <div class="flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-          <!-- 網格模式 (預設) -->
           <button id="layoutGridBtn" onclick="changeLayout('grid')" class="p-1.5 px-2.5 rounded-md bg-white shadow-sm text-slate-700 text-sm transition"><i class="fa-solid fa-border-all"></i></button>
-          <!-- 列表/緊湊模式 -->
           <button id="layoutListBtn" onclick="changeLayout('list')" class="p-1.5 px-2.5 rounded-md text-slate-400 hover:text-slate-700 text-sm transition"><i class="fa-solid fa-list"></i></button>
         </div>
       </div>
@@ -144,21 +135,30 @@
 
   <!-- ==================== [模塊 4：主內容網格與管理員橫幅] ==================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
-    <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <i class="fa-solid fa-crown text-amber-600 text-xl"></i>
-        <div>
-          <h3 class="text-sm font-bold text-amber-950">官方管理員模式 (is_admin = true)</h3>
-          <p class="text-xs text-amber-800">可上架拍賣品、隱藏物品、控制出價權限，並發送站內訊息。</p>
+    
+    <!-- 管理員專用橫幅 (含今日流量與設備數據) -->
+    <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div class="flex items-start space-x-3">
+        <i class="fa-solid fa-crown text-amber-600 text-xl mt-1 sm:mt-0"></i>
+        <div class="w-full">
+          <div class="flex flex-wrap items-center gap-2 mb-1">
+            <h3 class="text-sm font-bold text-amber-950">官方管理員模式</h3>
+            <span class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold text-[10px]">今日總瀏覽：<span id="adminVisitCount">0</span> 人</span>
+          </div>
+          <p class="text-[11px] sm:text-xs text-amber-800">可上架拍賣品、隱藏物品、控制出價權限，並發送站內訊息。</p>
+          <!-- 設備分佈顯示區 -->
+          <div id="adminDeviceStats" class="mt-2 text-[10px] text-amber-900/70 font-semibold bg-amber-100/50 inline-block px-2 py-1 rounded">
+            設備分佈載入中...
+          </div>
         </div>
       </div>
-      <div class="flex space-x-2">
+      <div class="flex space-x-2 shrink-0 self-end sm:self-auto">
         <button onclick="openAdminMsgModal()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm shrink-0"><i class="fa-solid fa-paper-plane mr-1"></i> 發送訊息</button>
         <button onclick="openUploadModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm shrink-0">+ 新增拍賣品</button>
       </div>
     </div>
 
-    <!-- 拍賣品列表網格 (動態套用 class) -->
+    <!-- 拍賣品列表網格 -->
     <div id="auctionsGrid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6"></div>
 
     <div id="emptyState" class="hidden text-center py-16">
@@ -171,11 +171,9 @@
 
   <!-- ==================== [模塊 11：懸浮 IG 追蹤按鈕] ==================== -->
   <a href="https://www.instagram.com/one_little_shop" target="_blank" class="fixed z-40 right-4 bottom-6 sm:right-8 sm:bottom-8 group flex items-center justify-end">
-    <!-- 滑鼠 hover 時顯示的提示小泡泡 -->
     <div class="mr-3 bg-white text-slate-700 text-[11px] font-bold px-3 py-1.5 rounded-full shadow-md border border-slate-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none hidden sm:block">
       追蹤最新動態 ✨
     </div>
-    <!-- 經典漸層 IG 按鈕 -->
     <div class="bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg shadow-rose-500/30 hover:scale-110 hover:-rotate-6 transition-transform duration-300">
       <i class="fa-brands fa-instagram text-[26px]"></i>
     </div>
@@ -301,7 +299,7 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 9：官方上架 Modal (含多圖與直接拍照)] ==================== -->
+  <!-- ==================== [模塊 9：官方上架 Modal] ==================== -->
   <div id="uploadModal" onclick="if(event.target === this) closeUploadModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-6 shadow-xl modal-enter my-8 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -398,8 +396,9 @@
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8 max-h-[90vh] overflow-y-auto cursor-default relative">
       
       <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between relative group">
-        <!-- Admin 專用操作按鈕群組 -->
+        <!-- Admin 操作群組：含商品總點閱數 -->
         <div id="adminActionGroup" class="hidden absolute top-3 right-3 z-30 flex flex-col gap-1.5 items-end">
+          <div id="adminItemViewBadge" class="bg-slate-800/80 text-white px-3 py-1 rounded-lg text-[10px] font-bold shadow-md mb-1"><i class="fa-regular fa-eye mr-1"></i>載入中...</div>
           <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()"></button>
           <button id="adminBiddableBtn" onclick="toggleAuctionBiddable()"></button>
         </div>
@@ -474,15 +473,69 @@
     let userMessages = [];
     let currentView = 'all';
     let currentCategory = '全部';
-    let currentSort = 'latest'; // 新增：預設排序
-    let currentLayout = 'grid'; // 新增：預設版面
+    let currentSort = 'latest'; 
+    let currentLayout = 'grid'; 
     let activeDetailAuctionId = null;
     let selectedFilesArray = []; 
     let tempAvatarBase64 = '';
 
+    /* ==================== [子模塊：設備與每日流量追蹤 (已升級)] ==================== */
+    // 偵測設備類型
+    function getDeviceType() {
+      const ua = navigator.userAgent;
+      if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
+      if (/Mobile|iP(hone|od)|Android|BlackBerry|IEMobile|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) return 'mobile';
+      return 'desktop';
+    }
+
+    async function trackDailyVisit() {
+      if (!sb) return;
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const deviceType = getDeviceType();
+      
+      const lastVisitDate = localStorage.getItem('last_visit_date');
+      const lastVisitDevice = localStorage.getItem('last_visit_device');
+      
+      // 如果今天還沒記錄過，或者換了設備看，就幫資料庫寫入一筆
+      if (lastVisitDate !== todayStr || lastVisitDevice !== deviceType) {
+        await sb.rpc('log_device_visit', { p_date: todayStr, p_device_type: deviceType });
+        localStorage.setItem('last_visit_date', todayStr);
+        localStorage.setItem('last_visit_device', deviceType);
+      }
+    }
+
+    // 管理員獲取今日設備分佈數據
+    async function fetchAdminDeviceStats() {
+      if (!sb || !currentUser?.isAdmin) return;
+      const now = new Date();
+      const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      
+      const { data } = await sb.from('homepage_device_stats').select('device_type, visit_count').eq('visit_date', todayStr);
+      
+      let mobile = 0, tablet = 0, desktop = 0, total = 0;
+      if (data) {
+        data.forEach(row => {
+          if (row.device_type === 'mobile') mobile = row.visit_count;
+          else if (row.device_type === 'tablet') tablet = row.visit_count;
+          else if (row.device_type === 'desktop') desktop = row.visit_count;
+          total += row.visit_count;
+        });
+      }
+      
+      document.getElementById('adminVisitCount').textContent = total;
+      const statsBox = document.getElementById('adminDeviceStats');
+      if (statsBox) {
+        statsBox.innerHTML = `<i class="fa-solid fa-mobile-screen-button mr-1"></i>手機 ${mobile} 人 <span class="mx-1">|</span> <i class="fa-solid fa-tablet-screen-button mr-1"></i>平板 ${tablet} 人 <span class="mx-1">|</span> <i class="fa-solid fa-desktop mr-1"></i>電腦 ${desktop} 人`;
+      }
+    }
+
     /* ==================== [子模塊：初始化與認證狀態] ==================== */
     async function initApp() {
       if (!isConfigured) return;
+      
+      await trackDailyVisit(); // 執行設備追蹤
+
       sb.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
           await loadUserProfile(session.user);
@@ -556,13 +609,14 @@
             bidIncrement: a.bid_increment,
             currentPrice: a.current_price,
             endTime: a.end_time,
-            createdAt: a.created_at, // 用於最新上架排序
+            createdAt: a.created_at,
             sellerId: a.seller_id,
             sellerName: a.seller_name,
             highestBidderId: a.highest_bidder_id,
             highestBidderName: a.highest_bidder_name,
             is_visible: a.is_visible !== false,
             is_biddable: a.is_biddable !== false,
+            view_count: a.view_count || 0, // 新增：單品點擊數
             bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
               bidderId: b.bidder_id,
               bidderName: b.bidder_name,
@@ -695,6 +749,7 @@
           roleBadge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-amber-500 text-white font-bold';
           document.getElementById('adminUploadBtn').classList.remove('hidden');
           adminBanner.classList.remove('hidden');
+          fetchAdminDeviceStats(); // 呼叫更新管理員設備分佈數據
         } else {
           roleBadge.textContent = currentUser.phone ? '已綁電話' : '未綁電話';
           roleBadge.className = currentUser.phone ? 'text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200' : 'text-[10px] px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200';
@@ -882,7 +937,7 @@
         return mVisible && mView && mCat && mKw;
       });
 
-      // 2. 排序 (依據目前選擇的 currentSort)
+      // 2. 排序
       filtered.sort((a, b) => {
         if (currentSort === 'ending_soon') {
             return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
@@ -891,7 +946,6 @@
         } else if (currentSort === 'price_desc') {
             return b.currentPrice - a.currentPrice;
         } else {
-            // latest 預設
             return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
         }
       });
@@ -901,9 +955,9 @@
 
       // 3. 判斷顯示佈局
       if (currentLayout === 'list') {
-        grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3'; // 列表模式排版
+        grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-3'; 
       } else {
-        grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6'; // 網格模式排版
+        grid.className = 'grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6'; 
       }
 
       grid.innerHTML = filtered.map(item => {
@@ -911,7 +965,6 @@
         const isLeading = currentUser && item.highestBidderId === currentUser.id;
         const hiddenStyle = !item.is_visible ? 'opacity-60 grayscale-[50%] border-dashed' : 'border-slate-200';
 
-        // ========== 列表視圖 HTML ==========
         if (currentLayout === 'list') {
           let listBtnHtml = '';
           if (cd.ended) {
@@ -958,8 +1011,6 @@
               </div>
             </div>`;
         } 
-        
-        // ========== 網格視圖 HTML (預設) ==========
         else {
           const badgesHtml = `
             <div class="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
@@ -1009,6 +1060,14 @@
     /* ==================== [子模塊：拍賣詳情與彈窗控制] ==================== */
     async function openDetailModal(id) {
       activeDetailAuctionId = id;
+      // 開啟前呼叫 API 增加點閱數
+      if (sb) {
+        sb.rpc('increment_auction_view', { p_auction_id: id }).then(() => {
+          const item = auctions.find(a => a.id === id);
+          if (item) item.view_count = (item.view_count || 0) + 1;
+        });
+      }
+      
       await renderDetailModalContent();
       document.getElementById('detailModal').classList.remove('hidden');
     }
@@ -1055,10 +1114,14 @@
       const adminGroup = document.getElementById('adminActionGroup');
       const visBtn = document.getElementById('adminVisibilityBtn');
       const bidToggleBtn = document.getElementById('adminBiddableBtn');
+      const viewBadge = document.getElementById('adminItemViewBadge');
       
       if (currentUser && currentUser.isAdmin) {
         adminGroup.classList.remove('hidden');
         
+        // 顯示該單品總點閱數
+        viewBadge.innerHTML = `<i class="fa-regular fa-eye mr-1"></i>${item.view_count || 1} 次瀏覽`;
+
         if (item.is_visible) {
           visBtn.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i>設為隱藏';
           visBtn.className = "bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
