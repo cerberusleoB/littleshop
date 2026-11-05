@@ -136,17 +136,19 @@
   <!-- ==================== [模塊 4：主內容網格與管理員橫幅] ==================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
     
-    <!-- 管理員專用橫幅 (含今日流量與設備數據) -->
+    <!-- 管理員專用橫幅 (含今日流量與可點擊的詳情面板入口) -->
     <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="flex items-start space-x-3">
         <i class="fa-solid fa-crown text-amber-600 text-xl mt-1 sm:mt-0"></i>
         <div class="w-full">
           <div class="flex flex-wrap items-center gap-2 mb-1">
             <h3 class="text-sm font-bold text-amber-950">官方管理員模式</h3>
-            <span class="bg-amber-200 text-amber-900 px-2 py-0.5 rounded font-bold text-[10px]">今日總瀏覽：<span id="adminVisitCount">0</span> 人</span>
+            <!-- 加入點擊事件，開啟流量詳情面板 -->
+            <button onclick="openStatsModal()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded font-bold text-[10px] cursor-pointer shadow-sm transition flex items-center">
+              今日總瀏覽：<span id="adminVisitCount" class="mx-1">0</span> 人 <i class="fa-solid fa-magnifying-glass-chart ml-1"></i>
+            </button>
           </div>
           <p class="text-[11px] sm:text-xs text-amber-800">可上架拍賣品、隱藏物品、控制出價權限，並發送站內訊息。</p>
-          <!-- 設備分佈顯示區 -->
           <div id="adminDeviceStats" class="mt-2 text-[10px] text-amber-900/70 font-semibold bg-amber-100/50 inline-block px-2 py-1 rounded">
             設備分佈載入中...
           </div>
@@ -178,6 +180,20 @@
       <i class="fa-brands fa-instagram text-[26px]"></i>
     </div>
   </a>
+
+  <!-- ==================== [模塊：流量統計詳情 Modal (新增)] ==================== -->
+  <div id="statsModal" onclick="if(event.target === this) document.getElementById('statsModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-enter flex flex-col max-h-[85vh]">
+      <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-900"><i class="fa-solid fa-chart-pie text-amber-500 mr-2"></i>歷年流量與設備統計</h3>
+        <button onclick="document.getElementById('statsModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+      <div id="statsListContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-sm no-scrollbar">
+        <!-- 內容由 JS 動態生成 -->
+        <div class="text-center py-4 text-slate-400 text-xs">數據載入中...</div>
+      </div>
+    </div>
+  </div>
 
   <!-- ==================== [模塊 5：站內訊息中心 Modal] ==================== -->
   <div id="messagesModal" onclick="if(event.target === this) document.getElementById('messagesModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
@@ -299,7 +315,7 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 9：官方上架 Modal] ==================== -->
+  <!-- ==================== [模塊 9：官方上架 Modal (含多圖與直接拍照)] ==================== -->
   <div id="uploadModal" onclick="if(event.target === this) closeUploadModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-6 shadow-xl modal-enter my-8 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -398,7 +414,7 @@
       <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between relative group">
         <!-- Admin 操作群組：含商品總點閱數 -->
         <div id="adminActionGroup" class="hidden absolute top-3 right-3 z-30 flex flex-col gap-1.5 items-end">
-          <div id="adminItemViewBadge" class="bg-slate-800/80 text-white px-3 py-1 rounded-lg text-[10px] font-bold shadow-md mb-1"><i class="fa-regular fa-eye mr-1"></i>載入中...</div>
+          <div id="adminItemViewBadge" class="bg-slate-800/80 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md mb-1"><i class="fa-regular fa-eye mr-1"></i>載入中...</div>
           <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()"></button>
           <button id="adminBiddableBtn" onclick="toggleAuctionBiddable()"></button>
         </div>
@@ -479,8 +495,7 @@
     let selectedFilesArray = []; 
     let tempAvatarBase64 = '';
 
-    /* ==================== [子模塊：設備與每日流量追蹤 (已升級)] ==================== */
-    // 偵測設備類型
+    /* ==================== [子模塊：設備與每日流量追蹤] ==================== */
     function getDeviceType() {
       const ua = navigator.userAgent;
       if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) return 'tablet';
@@ -497,7 +512,6 @@
       const lastVisitDate = localStorage.getItem('last_visit_date');
       const lastVisitDevice = localStorage.getItem('last_visit_device');
       
-      // 如果今天還沒記錄過，或者換了設備看，就幫資料庫寫入一筆
       if (lastVisitDate !== todayStr || lastVisitDevice !== deviceType) {
         await sb.rpc('log_device_visit', { p_date: todayStr, p_device_type: deviceType });
         localStorage.setItem('last_visit_date', todayStr);
@@ -530,11 +544,58 @@
       }
     }
 
+    // 打開歷年統計 Modal
+    async function openStatsModal() {
+      if (!currentUser?.isAdmin) return;
+      document.getElementById('statsModal').classList.remove('hidden');
+      const container = document.getElementById('statsListContainer');
+      container.innerHTML = '<div class="text-center py-4 text-slate-500 text-xs">數據載入中...</div>';
+
+      const { data, error } = await sb.from('homepage_device_stats')
+                                    .select('*')
+                                    .order('visit_date', { ascending: false });
+      
+      if (error || !data) {
+        container.innerHTML = `<div class="text-center py-4 text-rose-500 text-xs">載入失敗：${error?.message}</div>`;
+        return;
+      }
+
+      const grouped = {};
+      data.forEach(row => {
+        if (!grouped[row.visit_date]) grouped[row.visit_date] = { mobile: 0, tablet: 0, desktop: 0, total: 0 };
+        grouped[row.visit_date][row.device_type] += row.visit_count;
+        grouped[row.visit_date].total += row.visit_count;
+      });
+
+      if (Object.keys(grouped).length === 0) {
+         container.innerHTML = '<div class="text-center py-4 text-slate-500 text-xs">暫無任何流量數據</div>';
+         return;
+      }
+
+      let html = '';
+      for (const [date, stats] of Object.entries(grouped)) {
+        html += `
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 flex flex-col gap-1.5">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-1.5">
+              <span class="font-bold text-slate-700">${date}</span>
+              <span class="font-black text-amber-600">總計: ${stats.total} 人</span>
+            </div>
+            <div class="flex justify-between text-xs text-slate-500 font-medium px-1">
+              <span><i class="fa-solid fa-mobile-screen-button mr-1"></i>手機: ${stats.mobile}</span>
+              <span><i class="fa-solid fa-tablet-screen-button mr-1"></i>平板: ${stats.tablet}</span>
+              <span><i class="fa-solid fa-desktop mr-1"></i>電腦: ${stats.desktop}</span>
+            </div>
+          </div>
+        `;
+      }
+      container.innerHTML = html;
+    }
+
     /* ==================== [子模塊：初始化與認證狀態] ==================== */
     async function initApp() {
       if (!isConfigured) return;
       
-      await trackDailyVisit(); // 執行設備追蹤
+      await trackDailyVisit(); 
 
       sb.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
@@ -616,7 +677,7 @@
             highestBidderName: a.highest_bidder_name,
             is_visible: a.is_visible !== false,
             is_biddable: a.is_biddable !== false,
-            view_count: a.view_count || 0, // 新增：單品點擊數
+            view_count: a.view_count || 0, // 單品點擊數
             bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
               bidderId: b.bidder_id,
               bidderName: b.bidder_name,
@@ -749,7 +810,7 @@
           roleBadge.className = 'text-[10px] px-1.5 py-0.2 rounded bg-amber-500 text-white font-bold';
           document.getElementById('adminUploadBtn').classList.remove('hidden');
           adminBanner.classList.remove('hidden');
-          fetchAdminDeviceStats(); // 呼叫更新管理員設備分佈數據
+          fetchAdminDeviceStats(); 
         } else {
           roleBadge.textContent = currentUser.phone ? '已綁電話' : '未綁電話';
           roleBadge.className = currentUser.phone ? 'text-[10px] px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200' : 'text-[10px] px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 border border-rose-200';
@@ -877,7 +938,8 @@
           seller_id: currentUser.id,
           seller_name: currentUser.nickname,
           is_visible: true,
-          is_biddable: true
+          is_biddable: true,
+          view_count: 0
         }]);
         if (dbErr) throw dbErr;
 
@@ -1060,7 +1122,8 @@
     /* ==================== [子模塊：拍賣詳情與彈窗控制] ==================== */
     async function openDetailModal(id) {
       activeDetailAuctionId = id;
-      // 開啟前呼叫 API 增加點閱數
+      
+      // 開啟時，呼叫 API 增加點閱數
       if (sb) {
         sb.rpc('increment_auction_view', { p_auction_id: id }).then(() => {
           const item = auctions.find(a => a.id === id);
