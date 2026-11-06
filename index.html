@@ -36,7 +36,7 @@
 
       <div class="hidden md:flex flex-1 max-w-md mx-4">
         <div class="relative w-full">
-          <input type="text" id="searchInput" oninput="renderAuctions()" placeholder="搜尋毛公仔、盒玩、其他收藏..." 
+          <input type="text" id="searchInput" oninput="renderAuctions()" placeholder="搜尋拍賣品..." 
             class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 bg-slate-50">
           <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400"></i>
         </div>
@@ -107,12 +107,9 @@
             <i class="fa-solid fa-hand-holding-dollar mr-1"></i> 我的參標紀錄 <span id="myBidCountBadge" class="ml-1 px-1.5 py-0.2 text-xs rounded-full bg-slate-200 text-slate-700">0</span>
           </button>
         </div>
-        <div class="flex items-center space-x-2 overflow-x-auto text-sm no-scrollbar">
-          <span class="text-slate-400 text-xs mr-1">分類:</span>
-          <button onclick="setCategory('全部')" class="cat-btn shrink-0 px-3 py-1 rounded-md bg-amber-500 text-white font-medium" data-cat="全部">全部</button>
-          <button onclick="setCategory('毛公仔')" class="cat-btn shrink-0 px-3 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="毛公仔">毛公仔</button>
-          <button onclick="setCategory('盒玩')" class="cat-btn shrink-0 px-3 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="盒玩">盒玩</button>
-          <button onclick="setCategory('其他')" class="cat-btn shrink-0 px-3 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200" data-cat="其他">其他</button>
+        <div id="categoryBtnContainer" class="flex items-center space-x-2 overflow-x-auto text-sm no-scrollbar">
+          <span class="text-slate-400 text-xs mr-1 shrink-0">分類:</span>
+          <!-- 動態插入主分類按鈕 -->
         </div>
       </div>
       <div class="flex items-center justify-between pt-2 border-t border-slate-100">
@@ -136,14 +133,12 @@
   <!-- ==================== [模塊 4：主內容網格與管理員橫幅] ==================== -->
   <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
     
-    <!-- 管理員專用橫幅 (含今日流量與可點擊的詳情面板入口) -->
     <div id="adminBanner" class="mb-6 hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <div class="flex items-start space-x-3">
         <i class="fa-solid fa-crown text-amber-600 text-xl mt-1 sm:mt-0"></i>
         <div class="w-full">
           <div class="flex flex-wrap items-center gap-2 mb-1">
             <h3 class="text-sm font-bold text-amber-950">官方管理員模式</h3>
-            <!-- 加入點擊事件，開啟流量詳情面板 -->
             <button onclick="openStatsModal()" class="bg-amber-200 hover:bg-amber-300 text-amber-900 px-2 py-0.5 rounded font-bold text-[10px] cursor-pointer shadow-sm transition flex items-center">
               今日總瀏覽：<span id="adminVisitCount" class="mx-1">0</span> 人 <i class="fa-solid fa-magnifying-glass-chart ml-1"></i>
             </button>
@@ -181,7 +176,7 @@
     </div>
   </a>
 
-  <!-- ==================== [模塊：流量統計詳情 Modal (新增)] ==================== -->
+  <!-- ==================== [模塊：流量統計詳情 Modal] ==================== -->
   <div id="statsModal" onclick="if(event.target === this) document.getElementById('statsModal').classList.add('hidden')" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-sm w-full p-6 shadow-2xl modal-enter flex flex-col max-h-[85vh]">
       <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100">
@@ -189,7 +184,6 @@
         <button onclick="document.getElementById('statsModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
       <div id="statsListContainer" class="flex-1 overflow-y-auto space-y-2.5 pr-1 text-sm no-scrollbar">
-        <!-- 內容由 JS 動態生成 -->
         <div class="text-center py-4 text-slate-400 text-xs">數據載入中...</div>
       </div>
     </div>
@@ -315,7 +309,7 @@
     </div>
   </div>
 
-  <!-- ==================== [模塊 9：官方上架 Modal (含多圖與直接拍照)] ==================== -->
+  <!-- ==================== [模塊 9：官方上架 Modal (含隱藏式細分類)] ==================== -->
   <div id="uploadModal" onclick="if(event.target === this) closeUploadModal()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-lg w-full p-6 shadow-xl modal-enter my-8 max-h-[85vh] overflow-y-auto">
       <div class="flex justify-between items-center mb-4">
@@ -349,13 +343,19 @@
             <label class="block text-xs font-semibold text-slate-500 mb-1">拍賣品名稱 *</label>
             <input type="text" id="itemTitle" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm">
           </div>
+          
+          <!-- 隱藏式雙層分類設計 -->
           <div>
             <label class="block text-xs font-semibold text-slate-500 mb-1">分類 *</label>
-            <select id="itemCategory" class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
-              <option value="毛公仔">毛公仔</option>
-              <option value="盒玩">盒玩</option>
-              <option value="其他">其他</option>
-            </select>
+            <input type="text" id="itemCategory" list="categoryOptions" required class="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" placeholder="選擇或輸入">
+            <datalist id="categoryOptions"></datalist>
+            
+            <div class="mt-1 text-right">
+              <button type="button" onclick="document.getElementById('subCatWrapper').classList.toggle('hidden')" class="text-[10px] text-amber-600 font-medium hover:underline"><i class="fa-solid fa-plus mr-0.5"></i>細分類(選填)</button>
+            </div>
+            <div id="subCatWrapper" class="hidden mt-1.5">
+              <input type="text" id="itemSubCategory" class="w-full px-3 py-1.5 border border-slate-200 rounded-lg text-xs bg-slate-50" placeholder="例如：迪士尼 (選填)">
+            </div>
           </div>
         </div>
 
@@ -412,7 +412,6 @@
     <div class="bg-white rounded-t-3xl sm:rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl modal-enter grid grid-cols-1 md:grid-cols-12 my-8 max-h-[90vh] overflow-y-auto cursor-default relative">
       
       <div class="md:col-span-6 bg-slate-100 flex flex-col justify-between relative group">
-        <!-- Admin 操作群組：含商品總點閱數 -->
         <div id="adminActionGroup" class="hidden absolute top-3 right-3 z-30 flex flex-col gap-1.5 items-end">
           <div id="adminItemViewBadge" class="bg-slate-800/80 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md mb-1"><i class="fa-regular fa-eye mr-1"></i>載入中...</div>
           <button id="adminVisibilityBtn" onclick="toggleAuctionVisibility()"></button>
@@ -435,6 +434,7 @@
         
         <div class="p-5 bg-white border-t border-slate-100 flex-1">
           <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+            <!-- 動態顯示 雙層分類標籤 -->
             <span id="detailCat" class="font-semibold text-amber-700 bg-amber-50 px-2 py-0.5 rounded"></span>
             <span><i class="fa-solid fa-location-dot mr-1"></i><span id="detailLocation"></span></span>
           </div>
@@ -487,6 +487,7 @@
     let currentUser = null;
     let auctions = [];
     let userMessages = [];
+    let siteCategories = []; 
     let currentView = 'all';
     let currentCategory = '全部';
     let currentSort = 'latest'; 
@@ -494,6 +495,37 @@
     let activeDetailAuctionId = null;
     let selectedFilesArray = []; 
     let tempAvatarBase64 = '';
+
+    /* ==================== [子模塊：動態分類獲取與渲染] ==================== */
+    async function fetchCategories() {
+      if (!sb) return;
+      const { data } = await sb.from('categories').select('name').is('parent_name', null).order('created_at', { ascending: true });
+      if (data) {
+        siteCategories = data.map(c => c.name);
+        renderCategoryButtons();
+        renderCategoryOptions();
+      }
+    }
+
+    function renderCategoryButtons() {
+      const container = document.getElementById('categoryBtnContainer');
+      let html = `<span class="text-slate-400 text-xs mr-1 shrink-0">分類:</span>`;
+      
+      const allClass = currentCategory === '全部' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+      html += `<button onclick="setCategory('全部')" class="cat-btn shrink-0 px-3 py-1 rounded-md font-medium transition ${allClass}" data-cat="全部">全部</button>`;
+      
+      siteCategories.forEach(cat => {
+        const activeClass = currentCategory === cat ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+        html += `<button onclick="setCategory('${cat}')" class="cat-btn shrink-0 px-3 py-1 rounded-md font-medium transition ${activeClass}" data-cat="${cat}">${cat}</button>`;
+      });
+      
+      container.innerHTML = html;
+    }
+
+    function renderCategoryOptions() {
+      const datalist = document.getElementById('categoryOptions');
+      datalist.innerHTML = siteCategories.map(cat => `<option value="${cat}">`).join('');
+    }
 
     /* ==================== [子模塊：設備與每日流量追蹤] ==================== */
     function getDeviceType() {
@@ -519,7 +551,6 @@
       }
     }
 
-    // 管理員獲取今日設備分佈數據
     async function fetchAdminDeviceStats() {
       if (!sb || !currentUser?.isAdmin) return;
       const now = new Date();
@@ -544,7 +575,6 @@
       }
     }
 
-    // 打開歷年統計 Modal
     async function openStatsModal() {
       if (!currentUser?.isAdmin) return;
       document.getElementById('statsModal').classList.remove('hidden');
@@ -596,6 +626,7 @@
       if (!isConfigured) return;
       
       await trackDailyVisit(); 
+      await fetchCategories(); 
 
       sb.auth.onAuthStateChange(async (_event, session) => {
         if (session?.user) {
@@ -662,6 +693,7 @@
             id: a.id,
             title: a.title,
             category: a.category,
+            subCategory: a.sub_category || '', 
             location: a.location,
             desc: a.description || '',
             imageUrl: urls[0] || '',
@@ -677,7 +709,7 @@
             highestBidderName: a.highest_bidder_name,
             is_visible: a.is_visible !== false,
             is_biddable: a.is_biddable !== false,
-            view_count: a.view_count || 0, // 單品點擊數
+            view_count: a.view_count || 0,
             bids: (bidsData || []).filter(b => b.auction_id === a.id).map(b => ({
               bidderId: b.bidder_id,
               bidderName: b.bidder_name,
@@ -863,6 +895,10 @@
       const day = String(now.getDate()).padStart(2, '0');
       document.getElementById('endTime').value = `${year}-${month}-${day}T23:59`;
 
+      document.getElementById('itemCategory').value = '';
+      document.getElementById('itemSubCategory').value = '';
+      document.getElementById('subCatWrapper').classList.add('hidden');
+      
       document.getElementById('uploadModal').classList.remove('hidden');
     }
 
@@ -908,6 +944,12 @@
       btn.disabled = true; btn.textContent = '圖片上傳中...';
 
       try {
+        const inputtedCategory = document.getElementById('itemCategory').value.trim();
+        const inputtedSubCategory = document.getElementById('itemSubCategory').value.trim();
+        if (!inputtedCategory) throw new Error('主分類不能為空');
+        
+        await sb.rpc('ensure_category_exists', { p_category_name: inputtedCategory, p_sub_category_name: inputtedSubCategory });
+
         const uploadedUrls = [];
         for (const file of selectedFilesArray) {
           const ext = file.name ? file.name.split('.').pop() : 'jpg';
@@ -927,7 +969,8 @@
 
         const { error: dbErr } = await sb.from('auctions').insert([{
           title: document.getElementById('itemTitle').value.trim(),
-          category: document.getElementById('itemCategory').value,
+          category: inputtedCategory,
+          sub_category: inputtedSubCategory,
           location: combinedLocation,
           description: document.getElementById('itemDesc').value.trim(),
           image_url: uploadedUrls.join(','),
@@ -944,6 +987,7 @@
         if (dbErr) throw dbErr;
 
         closeUploadModal();
+        await fetchCategories(); 
         await fetchAuctions();
         alert('✨ 拍賣品成功上架！');
       } catch (err) {
@@ -995,7 +1039,7 @@
         const mVisible = (currentUser && currentUser.isAdmin) ? true : a.is_visible;
         const mView = currentView === 'all' ? true : (currentUser && a.bids.some(b => b.bidderId === currentUser.id));
         const mCat = currentCategory === '全部' ? true : a.category === currentCategory;
-        const mKw = a.title.toLowerCase().includes(kw) || a.desc.toLowerCase().includes(kw);
+        const mKw = a.title.toLowerCase().includes(kw) || a.desc.toLowerCase().includes(kw) || (a.subCategory && a.subCategory.toLowerCase().includes(kw));
         return mVisible && mView && mCat && mKw;
       });
 
@@ -1025,6 +1069,7 @@
       grid.innerHTML = filtered.map(item => {
         const cd = getCountdownInfo(item.endTime);
         const isLeading = currentUser && item.highestBidderId === currentUser.id;
+        const nextMinBid = item.bids.length === 0 ? item.startPrice : item.currentPrice + item.bidIncrement;
         const hiddenStyle = !item.is_visible ? 'opacity-60 grayscale-[50%] border-dashed' : 'border-slate-200';
 
         if (currentLayout === 'list') {
@@ -1123,7 +1168,6 @@
     async function openDetailModal(id) {
       activeDetailAuctionId = id;
       
-      // 開啟時，呼叫 API 增加點閱數
       if (sb) {
         sb.rpc('increment_auction_view', { p_auction_id: id }).then(() => {
           const item = auctions.find(a => a.id === id);
@@ -1182,23 +1226,22 @@
       if (currentUser && currentUser.isAdmin) {
         adminGroup.classList.remove('hidden');
         
-        // 顯示該單品總點閱數
         viewBadge.innerHTML = `<i class="fa-regular fa-eye mr-1"></i>${item.view_count || 1} 次瀏覽`;
 
         if (item.is_visible) {
           visBtn.innerHTML = '<i class="fa-solid fa-eye-slash mr-1"></i>設為隱藏';
-          visBtn.className = "bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          visBtn.className = "bg-slate-900/80 hover:bg-slate-900 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition w-full text-right";
         } else {
-          visBtn.innerHTML = '<i class="fa-solid fa-eye mr-1"></i>設為公開可見';
-          visBtn.className = "bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          visBtn.innerHTML = '<i class="fa-solid fa-eye mr-1"></i>設為公開';
+          visBtn.className = "bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition w-full text-right";
         }
 
         if (item.is_biddable) {
           bidToggleBtn.innerHTML = '<i class="fa-solid fa-lock mr-1"></i>暫停出價';
-          bidToggleBtn.className = "bg-rose-600/90 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          bidToggleBtn.className = "bg-rose-600/90 hover:bg-rose-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition w-full text-right";
         } else {
           bidToggleBtn.innerHTML = '<i class="fa-solid fa-lock-open mr-1"></i>開放出價';
-          bidToggleBtn.className = "bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition";
+          bidToggleBtn.className = "bg-emerald-600/90 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow-md transition w-full text-right";
         }
       } else {
         adminGroup.classList.add('hidden');
@@ -1226,7 +1269,8 @@
         nextBtn.classList.add('hidden');
       }
 
-      document.getElementById('detailCat').textContent = item.category;
+      const categoryDisplay = item.subCategory ? `${item.category} <i class="fa-solid fa-chevron-right text-[8px] mx-1"></i> ${item.subCategory}` : item.category;
+      document.getElementById('detailCat').innerHTML = categoryDisplay;
       document.getElementById('detailLocation').textContent = item.location;
       document.getElementById('detailTitle').textContent = item.title;
       document.getElementById('detailDesc').textContent = item.desc;
@@ -1293,7 +1337,7 @@
       document.getElementById('profileModal').classList.remove('hidden');
     }
 
-    /* ==================== [子模塊：視圖、排序與版面切換] ==================== */
+    /* ==================== [子模塊：視圖、分類、排序與版面切換] ==================== */
     function switchView(v) {
       currentView = v;
       const tabAll = document.getElementById('tabAll');
@@ -1311,9 +1355,7 @@
 
     function setCategory(c) {
       currentCategory = c;
-      document.querySelectorAll('.cat-btn').forEach(btn => {
-        btn.className = btn.dataset.cat === c ? 'cat-btn shrink-0 px-3 py-1 rounded-md bg-amber-500 text-white font-medium' : 'cat-btn shrink-0 px-3 py-1 rounded-md bg-slate-100 text-slate-600 hover:bg-slate-200';
-      });
+      renderCategoryButtons(); 
       renderAuctions();
     }
 
